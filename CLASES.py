@@ -40,6 +40,7 @@ class STOP(ALIVE):
     """this class create obstacle"""
 
     def stop(self, x, y):
+        #Size of player and obstacle
         global PSize, SSize
 
         #logic of stoping player
@@ -56,9 +57,11 @@ class STOP(ALIVE):
 class PLAYER(MOVENMENT):
     """class for main being in this game"""
     def __init__(self, x, y, hp, atk, fill, weapon, inventory = [], curent_loc = None):
-        #player's inventort
+        #player's inventory
         self.inventory = inventory
+        #player's weapon
         self.weapon = weapon
+        #current location of player
         self.curent_loc = curent_loc
         super().__init__(x, y, hp, atk, fill)
 
@@ -125,6 +128,7 @@ class SPEAR(ALIVE):
         self.damage = damage
         #this variable answer "does the spear activated?"
         self.active = active
+        #the spear's title
         self.title = title
 
     def attack(self, x, y):
@@ -136,10 +140,12 @@ class SPEAR(ALIVE):
         return 0
 
     def put_to_inventory(self, player):
+        #append the spear to player's inventory
         if self.title not in player.inventory and self.damage > player.weapon.damage:
             player.inventory.append(self.title)
 
     def put_to_weapons(self, player, thing):
+        #append the spear to player's weapon
         if thing is not player.weapon and self.damage > player.weapon.damage:
             player.weapon = thing
 
@@ -213,11 +219,13 @@ class ENEMY(MOVENMENT):
         enemy = gog.create_rectangle(self.x, self.y, self.x + PSize, self.y + PSize, fill = self.fill)
 
 class KEY(object):
-    """key fo a door"""
+    """key for a door"""
 
     def __init__(self, title):
         self.title = title
+    
     def put_to_inventory(self, player):
+        #append key to player's inventoy
         if self.title not in player.inventory:
             player.inventory.append(self.title)
 
@@ -244,10 +252,11 @@ class CHEST(STOP):
 
         if x + PSize > self.x and y + PSize > self.y and x < self.x + PSize and y < self.y + PSize:
             #if player had stoped he take the inventory of this chest
-            return "stop"#"stop" - это то что означает, что игрок должен остановиться(sorry for rusian)
+            return "stop"#"stop" - это то что означает, что игрок должен остановиться(sorry for russian)
         return "nonstop"
 
     def empty(self):
+        #after player takes cest inventory, chest must be empty
         self.invent.pop()
 
     def repaint(self):
