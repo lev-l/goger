@@ -92,12 +92,12 @@ chest8 = CHEST(225, 370, sky_key, "brown")
 #--------------------------------------------------
 #-------------------------------------------------------------
 #list of locations
-#forest
 #sky
 loc1 = ['light blue', player, enemy18, enemy19, enemy20, stop18, stop19, stop20, chest6, player.weapon]
 loc2 = ['light blue', player, enemy21, enemy22, enemy23, stop21, stop22, stop23, chest7, player.weapon]
 loc3 = ['light blue', player, enemy24, enemy25, enemy26, stop24, stop25, stop26, chest8, player.weapon]
 #-------
+#forest
 loc4 = ['green', player, enemy3, enemy4, enemy5, stop3, stop4, stop5, chest1, player.weapon]
 loc5 = ['green', player, enemy, enemy1, enemy2, stop, stop1, stop2, chest, player.weapon]
 loc6 = ['green', player, enemy6, enemy7, enemy8, stop6, stop7, stop8, chest2, player.weapon]
@@ -108,11 +108,12 @@ loc8 = ['red', player, enemy12, enemy13, enemy14, stop12, stop13, stop14, chest4
 loc9 = ['red', player, enemy15, enemy16, enemy17, stop15, stop16, stop17, chest5, player.weapon]
 #-------
 #---------------------------------------------
-#all locations in ane list
+#stop the player on the edge of the location
 player_x = lambda: player.x - 5
 player_y = lambda: player.y - 5
 playerPx = lambda: player.x + 5
 playerPy = lambda: player.y + 5
+#all locations in one list
 locs = [
         [loc1, playerPx, playerPy, 1, 3], [loc2, 0, playerPy, 2, 4], [loc3, 1, playerPy, player_x, 5],
         [loc4, playerPx, 0, 4, 6], [loc5, 3, 1, 5, 7], [loc6, 4, 2, player_x, 8],
@@ -128,9 +129,11 @@ class ENGINE(object):
     """This class answer for all logic"""
 
     def __init__(self, locs_map):
+        #map of location
         self.locs_map = locs_map
         #variavle "do the game going?"
         self.ran = 0
+        #does spear active?
         self.spear_activated = 0
 
     def repaint(self):
@@ -140,6 +143,7 @@ class ENGINE(object):
         #fon of the screen
         fon = gog.create_rectangle(-1, -1, WIDTH + 1, HEIGHT + 1, fill = player.curent_loc[0][0])
         #-------------
+        #printing player's inventory
         text = Label(gog, text=", ".join(player.inventory))
         text.place(x=0, y=480)
 
@@ -169,6 +173,7 @@ class ENGINE(object):
         if thing is not None:
             thing.put_to_inventory(player)
             thing.put_to_weapons(player, thing)
+            #take the last spear
             player.curent_loc[0][9] = player.weapon
         # --------------------------------------
     def stoping_player(self, e1):
@@ -214,6 +219,7 @@ class ENGINE(object):
         player.curent_loc[0][2].move()
         player.curent_loc[0][3].move()
         player.curent_loc[0][4].move()
+        #if spear active, try kill enemy
         if self.spear_activated == 1:
             self.kiling_enemy()
 
@@ -228,11 +234,14 @@ class ENGINE(object):
             damadge = player.curent_loc[0][9].attack(player.curent_loc[0][2].x, player.curent_loc[0][2].y)
             player.curent_loc[0][2].hp -= damadge
             if damadge > 0 and player.curent_loc[0][2].hp > 0:
+                #disactivate spear if you hurted enemy but do not kiled he
                 self.spear_disactivate()
+            
             damadge = player.curent_loc[0][9].attack(player.curent_loc[0][3].x, player.curent_loc[0][3].y)
             player.curent_loc[0][3].hp -= damadge
             if damadge > 0 and player.curent_loc[0][3].hp > 0:
                 self.spear_disactivate()
+            
             damadge = player.curent_loc[0][9].attack(player.curent_loc[0][4].x, player.curent_loc[0][4].y)
             player.curent_loc[0][4].hp -= damadge
             if damadge > 0 and player.curent_loc[0][4].hp > 0:
@@ -278,13 +287,15 @@ class ENGINE(object):
         self.ran = 0
 
 class LOCATION(object):
-
+    """location's logic"""
     def __init__(self, locs_list):
         self.locs_list = locs_list
 
     def go_or_teleport(self, xy, i, end):
+        #teleport to next location or stop
         global player
         go = player.curent_loc[i]
+        
         if type(go) != int:
             if xy == "x":
                 player.x = go()
@@ -298,6 +309,8 @@ class LOCATION(object):
     def perehod(self):
         global player
         perehod = player.loc_end()
+        
+        #Is the player at the top, bottom, right or left border?
         if perehod == "<x":
             x = self.go_or_teleport("x", 1, 490)
             if x is not None:
