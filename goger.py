@@ -297,7 +297,7 @@ class LOCATION(object):
         go = player.curent_loc[i]
         
         if type(go) != int:
-                player.stop('stop')
+                player.stoping("stop")
         else:
             player.curent_loc = self.locs_list[go]
             player.curent_loc[0][9] = player.weapon
