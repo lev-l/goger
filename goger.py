@@ -115,9 +115,9 @@ playerPx = lambda: player.x + 5
 playerPy = lambda: player.y + 5
 #all locations in one list
 locs = [
-        [loc1, playerPx, playerPy, 1, 3], [loc2, 0, playerPy, 2, 4], [loc3, 1, playerPy, player_x, 5],
-        [loc4, playerPx, 0, 4, 6], [loc5, 3, 1, 5, 7], [loc6, 4, 2, player_x, 8],
-        [loc7, playerPx, 3, 7, player_y], [loc8, 6, 4, 8, player_y], [loc9, 7, 5, player_x, player_y]
+        [loc1, 'PS', 'PS', 1, 3], [loc2, 0, 'PS', 2, 4], [loc3, 1, 'PS', 'PS', 5],
+        [loc4, 'PS', 0, 4, 6], [loc5, 3, 1, 5, 7], [loc6, 4, 2, 'PS', 8],
+        [loc7, 'PS', 3, 7, 'PS'], [loc8, 6, 4, 8, 'PS'], [loc9, 7, 5, 'PS', 'PS']
         ]
 #[[loc, left, up, rigt, down]]
 #-------------------------------
@@ -291,16 +291,13 @@ class LOCATION(object):
     def __init__(self, locs_list):
         self.locs_list = locs_list
 
-    def go_or_teleport(self, xy, i, end):
+    def go_or_teleport(self, i, end):
         #teleport to next location or stop
         global player
         go = player.curent_loc[i]
         
         if type(go) != int:
-            if xy == "x":
-                player.x = go()
-            if xy == "y":
-                player.y = go()
+                player.stop('stop')
         else:
             player.curent_loc = self.locs_list[go]
             player.curent_loc[0][9] = player.weapon
@@ -312,19 +309,19 @@ class LOCATION(object):
         
         #Is the player at the top, bottom, right or left border?
         if perehod == "<x":
-            x = self.go_or_teleport("x", 1, 490)
+            x = self.go_or_teleport(1, 490)
             if x is not None:
                 player.x = x
         elif perehod == "x>":
-            x = self.go_or_teleport("x", 3, 0)
+            x = self.go_or_teleport(3, 0)
             if x is not None:
                 player.x = x
         elif perehod == "<y":
-            y = self.go_or_teleport("y", 2, 490)
+            y = self.go_or_teleport(2, 490)
             if y is not None:
                 player.y = y
         elif perehod == "y>":
-            y = self.go_or_teleport("y", 4, 0)
+            y = self.go_or_teleport(4, 0)
             if y is not None:
                 player.y = y
 
