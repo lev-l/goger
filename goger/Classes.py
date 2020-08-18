@@ -169,7 +169,7 @@ class Spear(Alive):
 		global PSize
 
 		#if spear touch enemy, it hurts him!
-		if self.x > x and self.y > y and self.x < x + PSize and self.y - 1 < y + PSize:
+		if self.x + 5 >= x and self.y >= y and self.x <= x + PSize and self.y - 1 <= y + PSize:
 			return self.damage
 		return 0
 
