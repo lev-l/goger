@@ -73,12 +73,13 @@ class Stop(Alive):
 
 class Player(Movenment):
 	"""class for main being in this game"""
-	def __init__(self, x, y, hp, atk, scin, profil, weapon, inventory = [], curent_loc = None):
+	def __init__(self, x, y, hp, atk, scin, profil, weapon, armour, inventory = [], curent_loc = None):
 		#player's inventort
 		self.inventory = inventory
 		self.standart_scin = scin
 		self.profil = profil
 		self.weapon = weapon
+		self.armour = armour
 		self.curent_loc = curent_loc
 		super().__init__(x, y, hp, atk, scin)
 
@@ -178,7 +179,10 @@ class Spear(Alive):
 	def put_to_weapons(self, player, thing):
 		if thing is not player.weapon and self.damage > player.weapon.damage:
 			player.weapon = thing
-
+	
+	def put_to_armours(self, player, thing):
+		pass
+	
 	def repaint(self):
 		global PSize, gog
 		gog.blit(self.scin, (self.x, self.y))
@@ -191,6 +195,7 @@ class Enemy(Movenment):
 		#переменная которая означает, какой сейчас ход у монстра, и следовательно
 		#куда его нужно сдвинуть
 		self.hod = 0
+		self.one_punch = False
 		self.profil = profil
 		self.standart_scin = scin
 		super().__init__(x, y, hp, atk, scin)
@@ -200,7 +205,13 @@ class Enemy(Movenment):
 
 		#logic of killing player
 		if x + PSize + 1 > self.x and y + PSize + 1 > self.y and x < self.x + PSize + 1 and y < self.y + PSize + 1 and self.hp > 0:
-			return self.atk
+			if self.one_punch == False:
+				self.one_punch = True
+				return self.atk
+			else:
+				return 0
+		
+		self.one_punch = False
 		return 0
 		#-----------------------
 
@@ -254,15 +265,47 @@ class Enemy(Movenment):
 
 class Key(object):
 	"""key fo a door"""
-
+	
 	def __init__(self, title):
 		self.title = title
+	
 	def put_to_inventory(self, player):
 		if self.title not in player.inventory:
 			player.inventory.append(self.title)
 
 	def put_to_weapons(self, player, thing):
 		pass
+	
+	def put_to_armours(self, player, thing):
+		pass
+
+class Armour(Key):
+	"""player's armour"""
+	
+	def __init__(self, title, arm):
+		self.arm = arm
+		super().__init__(title)
+	
+	def put_to_inventory(self, player):
+		if self.title not in player.inventory and self.arm > player.armour.arm:
+			player.inventory.append(self.title)
+	
+	def put_to_armours(self, player, thing):
+		if thing is not player.armour and self.arm > player.armour.arm:
+			player.armour = thing
+			
+			if "leather" in thing.title:
+				player.standart_scin = pygame.image.load("docs/player_leather.jpg")
+				player.profil = pygame.image.load("docs/player-profil_leather.jpg")
+				player.scin = pygame.image.load("docs/player_leather.jpg")
+			elif "metal" in thing.title:
+				player.standart_scin = pygame.image.load("docs/player_metal.jpg")
+				player.profil = pygame.image.load("docs/player-profil_metal.jpg")
+				player.scin = pygame.image.load("docs/player_metal.jpg")
+			elif "palladium" in thing.title:
+				player.standart_scin = pygame.image.load("docs/player_palladium.jpg")
+				player.profil = pygame.image.load("docs/player-profil_palladium.jpg")
+				player.scin = pygame.image.load("docs/player_palladium.jpg")
 
 
 class Chest(Stop):

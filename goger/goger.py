@@ -6,12 +6,20 @@ import threading
 #menu
 button_s = Button(150, 150, pygame.image.load("docs/button_start.jpg"), 200, 50)
 button_e = Button(150, 210, pygame.image.load("docs/button_exit.jpg"), 200, 50)
-menu = {'fon': pygame.image.load("docs/forest-back.jpg"), 'start': button_s, 'exit': button_e}
+
+button_1 = Button(150, 140, pygame.image.load("docs/easy.jpg"), 200, 50)
+button_2 = Button(150, 200, pygame.image.load("docs/normal.jpg"), 200, 50)
+button_3 = Button(150, 260, pygame.image.load("docs/complex.jpg"), 200, 50)
+button_4 = Button(150, 320, pygame.image.load("docs/hard.jpg"), 200, 50)
+
+menu = {'fon': pygame.image.load("docs/forest-back.jpg"), 'start': button_s, 'exit': button_e,
+		'easy': button_1, 'normal': button_2, 'complex': button_3, 'hard': button_4}
 #-----
 #texts
 fon = pygame.font.Font(None, 20)
 text_inventory = fon.render('', 0, (0, 0, 0))
 game_over = fon.render('GAME OVER!', 0, (255, 0, 0))
+players_hp = fon.render('', 0, (100, 0, 0))
 #-----
 
 
@@ -31,8 +39,22 @@ class ENGINE(object):
 		#fon of the screen
 		gog.blit(self.player.curent_loc[0][0], (0, 0))
 		#-------------
-		text_inventory = fon.render(", ".join(self.player.inventory), 0, (0, 0, 0))
-		gog.blit(text_inventory, (0, 480))
+		text = ""
+		i = 0
+		for el in self.player.inventory:
+			i += 1
+			text = text + el + ', '
+		
+		if len(text) > 83:
+			text1 = text[83:]
+			text = text[:83]
+			text_inventory = fon.render(text1, 0, (0, 0, 0))
+			gog.blit(text_inventory, (0, 480))
+		
+		text_inventory = fon.render(text, 0, (0, 0, 0))
+		gog.blit(text_inventory, (0, 460))
+		players_hp = fon.render('hp:' + str(self.player.hp), 0, (100, 0, 0))
+		gog.blit(players_hp, (0, 0))
 		
 		#repaint the spear only when it is activated
 		if self.spear_activated == 1:
@@ -60,6 +82,7 @@ class ENGINE(object):
 		if thing is not None:
 			thing.put_to_inventory(self.player)
 			thing.put_to_weapons(self.player, thing)
+			thing.put_to_armours(self.player, thing)
 			self.player.curent_loc[0][9] = self.player.weapon
 		# --------------------------------------
 	def stoping_player(self, e):
@@ -87,7 +110,15 @@ class ENGINE(object):
 		damage += self.player.curent_loc[0][3].kill(self.player.x, self.player.y)
 		# damage of 3-rd enemy
 		damage += self.player.curent_loc[0][4].kill(self.player.x, self.player.y)
-		#self.player take damage
+		#player take damage
+		
+		if damage - self.player.armour.arm <= 0 and damage != 0:
+			damage = 1
+		elif damage - self.player.armour.arm > 0 and damage != 0:
+			damage -= self.player.armour.arm
+		else:
+			damage = 0
+		
 		self.player.hp -= damage
 		sr = self.player.die()
 		
@@ -114,19 +145,28 @@ class ENGINE(object):
 	def kiling_enemy(self):
 		#enemy's die
 		damadge = 0
+		
 		if self.spear_activated == 1:
 			damadge = self.player.curent_loc[0][9].attack(self.player.curent_loc[0][2].x, self.player.curent_loc[0][2].y)
 			self.player.curent_loc[0][2].hp -= damadge
+			
 			if damadge > 0 and self.player.curent_loc[0][2].hp > 0:
 				self.spear_disactivate()
+				self.player.curent_loc[0][2].scin = pygame.image.load("docs/monster_hurted.jpg")
+			
 			damadge = self.player.curent_loc[0][9].attack(self.player.curent_loc[0][3].x, self.player.curent_loc[0][3].y)
 			self.player.curent_loc[0][3].hp -= damadge
+			
 			if damadge > 0 and self.player.curent_loc[0][3].hp > 0:
 				self.spear_disactivate()
+				self.player.curent_loc[0][3].scin = pygame.image.load("docs/monster_hurted.jpg")
+			
 			damadge = self.player.curent_loc[0][9].attack(self.player.curent_loc[0][4].x, self.player.curent_loc[0][4].y)
 			self.player.curent_loc[0][4].hp -= damadge
+			
 			if damadge > 0 and self.player.curent_loc[0][4].hp > 0:
 				self.spear_disactivate()
+				self.player.curent_loc[0][4].scin = pygame.image.load("docs/monster_hurted.jpg")
 	
 	def key_press(self, e):
 		#when any key press
@@ -202,7 +242,7 @@ class LOCATION(object):
 
 class Game(object):
 	
-	def game(self):
+	def game(self, player_hp):
 		#list of beings
 		#special objects
 		spear = Spear(250, 237, 1, pygame.image.load("docs/spear.png"), "spear")
@@ -210,11 +250,15 @@ class Game(object):
 		spear2 = Spear(250, 237, 3, pygame.image.load("docs/hell-spear.png"), "hell-spear")
 		spear3 = Spear(250, 237, 4, pygame.image.load("docs/sky-spear.png"), "sky-spear")
 		
+		armour = Armour('leather armour', 1)
+		armour1 = Armour('metal armour', 2)
+		armour2 = Armour('palladium armour', 3)
+		
 		forest_key = Key("forest_key")
 		hell_key = Key("hell_key")
 		sky_key = Key("sky_key")
 		
-		player = Player(245, 245, 1, 0, pygame.image.load("docs/player.jpg"), pygame.image.load("docs/player-profil.jpg"), spear, ["spear"])
+		player = Player(245, 245, player_hp, 0, pygame.image.load("docs/player.jpg"), pygame.image.load("docs/player-profil.jpg"), spear, Armour('none', 0), ["spear"])
 		#forest locations
 		#first location
 		enemy = Enemy(100, 200, 1, 1, pygame.image.load("docs/monster.jpg"), pygame.image.load("docs/monster-profil.jpg"))
@@ -239,7 +283,10 @@ class Game(object):
 		stop6 = Stop(310, 205, pygame.image.load("docs/lake.png"))
 		stop7= Stop(45, 410, pygame.image.load("docs/lake.png"))
 		stop8 = Stop(215, 80, pygame.image.load("docs/lake.png"))
-		chest2 = Chest(310, 185, spear1, pygame.image.load("docs/chest.jpg"))
+		if player_hp > 1:
+			chest2 = Chest(310, 185, armour, pygame.image.load("docs/chest.jpg"))
+		else:
+			chest2 = Chest(310, 185, spear1, pygame.image.load("docs/chest.jpg"))
 		#-----------------------------------------------
 		#hell locations
 		#fourth location
@@ -257,7 +304,10 @@ class Game(object):
 		stop12 = Stop(310, 205, pygame.image.load("docs/rock.png"))
 		stop13= Stop(310, 10, pygame.image.load("docs/rock.png"))
 		stop14 = Stop(215, 340, pygame.image.load("docs/rock.png"))
-		chest4 = Chest(310, 185, spear, pygame.image.load("docs/chest.jpg"))
+		if player_hp > 1:
+			chest4 = Chest(310, 185, armour1, pygame.image.load("docs/chest.jpg"))
+		else:
+			chest4 = Chest(310, 185, spear, pygame.image.load("docs/chest.jpg"))
 		#sixth location
 		enemy15 = Enemy(150, 200, 2, 2, pygame.image.load("docs/monster.jpg"), pygame.image.load("docs/monster-profil.jpg"))
 		enemy16 = Enemy(285, 100, 2, 2, pygame.image.load("docs/monster.jpg"), pygame.image.load("docs/monster-profil.jpg"))
@@ -283,7 +333,10 @@ class Game(object):
 		stop21 = Stop(50, 300, pygame.image.load("docs/sky_lake.png"))
 		stop22= Stop(150, 350, pygame.image.load("docs/sky_lake.png"))
 		stop23 = Stop(300, 100, pygame.image.load("docs/sky_lake.png"))
-		chest7 = Chest(280, 110, spear, pygame.image.load("docs/chest.jpg"))
+		if player_hp > 1:
+			chest7 = Chest(280, 110, armour2, pygame.image.load("docs/chest.jpg"))
+		else:
+			chest7 = Chest(280, 110, spear, pygame.image.load("docs/chest.jpg"))
 		#nineth location
 		enemy24 = Enemy(170, 400, 3, 3, pygame.image.load("docs/monster.jpg"), pygame.image.load("docs/monster-profil.jpg"))
 		enemy25 = Enemy(260, 400, 3, 3, pygame.image.load("docs/monster.jpg"), pygame.image.load("docs/monster-profil.jpg"))
@@ -351,25 +404,49 @@ class Game(object):
 
 
 
-def repaint_menu():
-	global menu, gog
+def repaint_menu(start):
+	global menu, gog, game_obj, started
 	
 	gog.blit(menu['fon'], (0, 0))
-	gog.blit(menu['start'].scin, (menu['start'].x, menu['start'].y))
-	gog.blit(menu['exit'].scin, (menu['exit'].x, menu['exit'].y))
+	
+	if start:
+		gog.blit(menu['easy'].scin, (menu['easy'].x, menu['easy'].y))
+		gog.blit(menu['normal'].scin, (menu['normal'].x, menu['normal'].y))
+		gog.blit(menu['complex'].scin, (menu['complex'].x, menu['complex'].y))
+		gog.blit(menu['hard'].scin, (menu['hard'].x, menu['hard'].y))
+		
+		for event in pygame.event.get():
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				if menu['easy'].pressed(event.pos[0], event.pos[1]):
+					started = 0
+					game_obj.game(10)
+				elif menu['normal'].pressed(event.pos[0], event.pos[1]):
+					started = 0
+					game_obj.game(6)
+				elif menu['complex'].pressed(event.pos[0], event.pos[1]):
+					started = 0
+					game_obj.game(3)
+				elif menu['hard'].pressed(event.pos[0], event.pos[1]):
+					started = 0
+					game_obj.game(1)
+	else:
+		gog.blit(menu['start'].scin, (menu['start'].x, menu['start'].y))
+		gog.blit(menu['exit'].scin, (menu['exit'].x, menu['exit'].y))
 
 clock = pygame.time.Clock()
 game_obj = Game()
 
+started = False
+
 #open menu
 while True:
 	clock.tick(20)
-	repaint_menu()
+	repaint_menu(started)
 	pygame.display.update()
 	
 	for event in pygame.event.get():
 		if event.type == pygame.MOUSEBUTTONDOWN:
 			if menu['start'].pressed(event.pos[0], event.pos[1]):
-				game_obj.game()
+				started = True
 			elif menu['exit'].pressed(event.pos[0], event.pos[1]):
 				exit(0)
