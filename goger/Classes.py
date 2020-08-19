@@ -201,7 +201,7 @@ class ThrowenSpear(Spear):
 		pass
 	
 	def put_to_throw(self, player, thing):
-		player.throw = thing
+		player.throw.append(thing)
 	
 	def fly(self, px, py):
 		if self.swing == 0:
@@ -383,7 +383,7 @@ class Chest(Stop):
 		return "nonstop"
 
 	def empty(self):
-		self.invent.pop()	
+		self.invent = None	
 	
 	def repaint(self):
 		global PSize, gog

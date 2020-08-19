@@ -44,7 +44,10 @@ class ENGINE(object):
 		i = 0
 		for el in self.player.inventory:
 			i += 1
-			text = text + el + ', '
+			if el == 'throwen spear':
+				text = text + el + 'x' + str(len(self.player.throw)) + ', '
+			else:
+				text = text + el + ', '
 		
 		if len(text) > 83:
 			text1 = text[83:]
@@ -61,7 +64,7 @@ class ENGINE(object):
 		if self.spear_activated == 1:
 			self.player.curent_loc[0][9].repaint()
 		if self.throwed == 1:
-			self.player.throw.repaint()
+			self.player.throw[len(self.player.throw) - 1].repaint()
 		
 		#repaint player
 		self.player.repaint()
@@ -88,6 +91,8 @@ class ENGINE(object):
 			thing.put_to_armours(self.player, thing)
 			thing.put_to_throw(self.player, thing)
 			self.player.curent_loc[0][9] = self.player.weapon
+			# clear chest
+			self.player.curent_loc[0][8].empty()
 		# --------------------------------------
 	def stoping_player(self, e):
 		#if the player must be stoped
@@ -174,17 +179,17 @@ class ENGINE(object):
 		
 		if self.throwed == 1:
 			
-			damadge = self.player.throw.attack(self.player.curent_loc[0][2].x, self.player.curent_loc[0][2].y)
+			damadge = self.player.throw[len(self.player.throw) - 1].attack(self.player.curent_loc[0][2].x, self.player.curent_loc[0][2].y)
 			self.player.curent_loc[0][2].hp -= damadge
 			if damadge > 0 and self.player.curent_loc[0][2].hp > 0:
 				self.player.curent_loc[0][2].scin = pygame.image.load("docs/monster_hurted.jpg")
 			
-			damadge = self.player.throw.attack(self.player.curent_loc[0][3].x, self.player.curent_loc[0][3].y)
+			damadge = self.player.throw[len(self.player.throw) - 1].attack(self.player.curent_loc[0][3].x, self.player.curent_loc[0][3].y)
 			self.player.curent_loc[0][3].hp -= damadge
 			if damadge > 0 and self.player.curent_loc[0][3].hp > 0:
 				self.player.curent_loc[0][3].scin = pygame.image.load("docs/monster_hurted.jpg")
 			
-			damadge = self.player.throw.attack(self.player.curent_loc[0][4].x, self.player.curent_loc[0][4].y)
+			damadge = self.player.throw[len(self.player.throw) - 1].attack(self.player.curent_loc[0][4].x, self.player.curent_loc[0][4].y)
 			self.player.curent_loc[0][4].hp -= damadge
 			if damadge > 0 and self.player.curent_loc[0][4].hp > 0:
 				self.player.curent_loc[0][4].scin = pygame.image.load("docs/monster_hurted.jpg")
@@ -202,10 +207,10 @@ class ENGINE(object):
 			if self.ran == 1:
 				#hide the spear
 				threading.Timer(1, self.spear_disactivate).start()
-		elif e[pygame.K_t] and self.player.throw != False:
+		elif e[pygame.K_t] and self.player.throw:
 			self.throwed = 1
-			self.player.throw.x = self.player.x + 5
-			self.player.throw.y = self.player.y - 8
+			self.player.throw[len(self.player.throw) - 1].x = self.player.x + 5
+			self.player.throw[len(self.player.throw) - 1].y = self.player.y - 8
 		
 		#spear always is next to player
 		self.player.curent_loc[0][9].x = self.player.x + 5
@@ -286,7 +291,7 @@ class Game(object):
 		sky_key = Key("sky_key")
 		
 		player = Player(245, 245, player_hp, 0, pygame.image.load("docs/player.jpg"),
-						pygame.image.load("docs/player-profil.jpg"), spear, False, Armour('none', 0), ["spear"])
+						pygame.image.load("docs/player-profil.jpg"), spear, [], Armour('none', 0), ["spear"])
 		#forest locations
 		#first location
 		enemy = Enemy(100, 200, 1, 1, pygame.image.load("docs/monster.jpg"), pygame.image.load("docs/monster-profil.jpg"))
@@ -418,8 +423,10 @@ class Game(object):
 			log.start()
 			
 			if log.throwed == 1:
-				status = player.throw.fly(player.x + 5, player.y - 8)
+				status = player.throw[len(player.throw) - 1].fly(player.x + 5, player.y - 8)
 				log.throwed = status
+				if not log.throwed:
+					player.throw.pop()
 			
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT:
