@@ -73,12 +73,13 @@ class Stop(Alive):
 
 class Player(Movenment):
 	"""class for main being in this game"""
-	def __init__(self, x, y, hp, atk, scin, profil, weapon, armour, inventory = [], curent_loc = None):
+	def __init__(self, x, y, hp, atk, scin, profil, weapon, throw, armour, inventory = [], curent_loc = None):
 		#player's inventort
 		self.inventory = inventory
 		self.standart_scin = scin
 		self.profil = profil
 		self.weapon = weapon
+		self.throw = throw
 		self.armour = armour
 		self.curent_loc = curent_loc
 		super().__init__(x, y, hp, atk, scin)
@@ -168,7 +169,7 @@ class Spear(Alive):
 		global PSize
 
 		#if spear touch enemy, it hurts him!
-		if self.x > x and self.y > y and self.x < x + PSize and self.y - 1 < y + PSize:
+		if self.x + 5 >= x and self.y >= y and self.x <= x + PSize and self.y - 1 <= y + PSize:
 			return self.damage
 		return 0
 
@@ -183,9 +184,53 @@ class Spear(Alive):
 	def put_to_armours(self, player, thing):
 		pass
 	
+	def put_to_throw(self, player, thing):
+		pass
+	
 	def repaint(self):
 		global PSize, gog
 		gog.blit(self.scin, (self.x, self.y))
+
+class ThrowenSpear(Spear):
+	
+	def __init__(self, x, y, damage, scin, title, active = 0, swing = 0):
+		self.swing = swing
+		super().__init__(x, y, damage, scin, title, active)
+	
+	def put_to_weapons(self, player, thing):
+		pass
+	
+	def put_to_throw(self, player, thing):
+		player.throw.append(thing)
+	
+	def fly(self, px, py):
+		if self.swing == 0:
+			self.x = px
+			self.y = py
+			self.y -= 3
+			self.swing += 1
+		elif self.swing == 1:
+			self.y -= 3
+			self.swing += 1
+		elif self.swing == 2:
+			self.y -= 3
+			self.swing += 1
+		elif self.swing == 3:
+			self.y -= 3
+			self.swing += 1
+		elif self.swing == 4:
+			self.y -= 3
+			self.swing += 1
+		elif self.swing == 5:
+			self.y -= 3
+			self.swing += 1
+		else:
+			self.swing = 0
+			self.x = px
+			self.y = py
+			return 0
+		return 1
+			
 
 class Enemy(Movenment):
 	"""class what create evil"""
@@ -276,6 +321,9 @@ class Key(object):
 	def put_to_weapons(self, player, thing):
 		pass
 	
+	def put_to_throw(self, player, thing):
+		pass
+	
 	def put_to_armours(self, player, thing):
 		pass
 
@@ -289,6 +337,9 @@ class Armour(Key):
 	def put_to_inventory(self, player):
 		if self.title not in player.inventory and self.arm > player.armour.arm:
 			player.inventory.append(self.title)
+	
+	def put_to_throw(self, player, thing):
+		pass
 	
 	def put_to_armours(self, player, thing):
 		if thing is not player.armour and self.arm > player.armour.arm:
@@ -332,7 +383,7 @@ class Chest(Stop):
 		return "nonstop"
 
 	def empty(self):
-		self.invent.pop()	
+		self.invent = None	
 	
 	def repaint(self):
 		global PSize, gog
