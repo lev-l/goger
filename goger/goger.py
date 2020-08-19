@@ -5,15 +5,18 @@ import threading
 
 #menu
 button_s = Button(150, 150, pygame.image.load("docs/button_start.jpg"), 200, 50)
-button_e = Button(150, 210, pygame.image.load("docs/button_exit.jpg"), 200, 50)
+button_edu = Button(150, 210, pygame.image.load("docs/education_button.jpg"), 200, 50)
+button_e = Button(150, 270, pygame.image.load("docs/button_exit.jpg"), 200, 50)
 
 button_1 = Button(150, 140, pygame.image.load("docs/easy.jpg"), 200, 50)
 button_2 = Button(150, 200, pygame.image.load("docs/normal.jpg"), 200, 50)
 button_3 = Button(150, 260, pygame.image.load("docs/complex.jpg"), 200, 50)
 button_4 = Button(150, 320, pygame.image.load("docs/hard.jpg"), 200, 50)
+button_back = Button(450, 0, pygame.image.load("docs/back.jpg"), 50, 50)
 
-menu = {'fon': pygame.image.load("docs/forest-back.jpg"), 'start': button_s, 'exit': button_e,
-		'easy': button_1, 'normal': button_2, 'complex': button_3, 'hard': button_4}
+menu = {'fon': pygame.image.load("docs/forest-back.jpg"), 'start': button_s, 'edu': button_edu,
+		'exit': button_e, 'easy': button_1, 'normal': button_2, 'complex': button_3,
+		'hard': button_4, 'back': button_back}
 #-----
 #texts
 fon = pygame.font.Font(None, 20)
@@ -446,8 +449,8 @@ class Game(object):
 
 
 
-def repaint_menu(start):
-	global menu, gog, game_obj, started
+def repaint_menu(start, education):
+	global menu, gog, game_obj, started, edu
 	
 	gog.blit(menu['fon'], (0, 0))
 	
@@ -460,30 +463,41 @@ def repaint_menu(start):
 		for event in pygame.event.get():
 			if event.type == pygame.MOUSEBUTTONDOWN:
 				if menu['easy'].pressed(event.pos[0], event.pos[1]):
-					started = 0
+					started = False
 					game_obj.game(10)
 				elif menu['normal'].pressed(event.pos[0], event.pos[1]):
-					started = 0
+					started = False
 					game_obj.game(6)
 				elif menu['complex'].pressed(event.pos[0], event.pos[1]):
-					started = 0
+					started = False
 					game_obj.game(3)
 				elif menu['hard'].pressed(event.pos[0], event.pos[1]):
-					started = 0
+					started = False
 					game_obj.game(1)
+	elif education:
+		gog.blit(pygame.image.load('docs/education.PNG'), (0, 0))
+		gog.blit(menu['back'].scin, (menu['back'].x, menu['back'].y))
+		
+		for event in pygame.event.get():
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				if menu['back'].pressed(event.pos[0], event.pos[1]):
+					edu = False
+					return False
 	else:
 		gog.blit(menu['start'].scin, (menu['start'].x, menu['start'].y))
+		gog.blit(menu['edu'].scin, (menu['edu'].x, menu['edu'].y))
 		gog.blit(menu['exit'].scin, (menu['exit'].x, menu['exit'].y))
 
 clock = pygame.time.Clock()
 game_obj = Game()
 
 started = False
+edu = False
 
 #open menu
 while True:
 	clock.tick(20)
-	repaint_menu(started)
+	repaint_menu(started, edu)
 	pygame.display.update()
 	
 	for event in pygame.event.get():
@@ -492,3 +506,5 @@ while True:
 				started = True
 			elif menu['exit'].pressed(event.pos[0], event.pos[1]):
 				exit(0)
+			elif menu['edu'].pressed(event.pos[0], event.pos[1]):
+				edu = True
