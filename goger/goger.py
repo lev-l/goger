@@ -3,17 +3,21 @@ import pygame
 import threading
 
 
-#menu
+# menu
+# main buttons
 button_s = Button(150, 150, pygame.image.load("docs/button_start.jpg"), 200, 50)
 button_edu = Button(150, 210, pygame.image.load("docs/education_button.jpg"), 200, 50)
 button_e = Button(150, 270, pygame.image.load("docs/button_exit.jpg"), 200, 50)
 
+# buttons for changing complex
 button_1 = Button(150, 140, pygame.image.load("docs/easy.jpg"), 200, 50)
 button_2 = Button(150, 200, pygame.image.load("docs/normal.jpg"), 200, 50)
 button_3 = Button(150, 260, pygame.image.load("docs/complex.jpg"), 200, 50)
 button_4 = Button(150, 320, pygame.image.load("docs/hard.jpg"), 200, 50)
+# button for backing to main menu
 button_back = Button(450, 0, pygame.image.load("docs/back.jpg"), 50, 50)
 
+# menu definiton
 menu = {'fon': pygame.image.load("docs/forest-back.jpg"), 'start': button_s, 'edu': button_edu,
 		'exit': button_e, 'easy': button_1, 'normal': button_2, 'complex': button_3,
 		'hard': button_4, 'back': button_back}
@@ -32,7 +36,7 @@ class ENGINE(object):
 	def __init__(self, locs_map, player):
 		self.locs_map = locs_map
 		self.player = player
-		#variavle "do the game going?"
+		#variable what's meaning "do the game going?"
 		self.ran = 0
 		self.spear_activated = 0
 		self.throwed = 0
@@ -45,14 +49,17 @@ class ENGINE(object):
 		#-------------
 		text = ""
 		i = 0
+		# combain player's inventory in one string
 		for el in self.player.inventory:
 			i += 1
 			if el == 'throwen spear':
-				text = text + el + 'x' + str(len(self.player.throw)) + ', '
+				# anounce amount of 'throwen spear' like 'throwen spear x2'
+				text = text + el + ' x' + str(len(self.player.throw)) + ', '
 			else:
 				text = text + el + ', '
 		
 		if len(text) > 83:
+			# split the text to two parts becouse it too long
 			text1 = text[83:]
 			text = text[:83]
 			text_inventory = fon.render(text1, 0, (0, 0, 0))
@@ -89,6 +96,7 @@ class ENGINE(object):
 		# take something from chest's inventory
 		thing = self.player.curent_loc[0][8].give_inventory(self.player.x, self.player.y, e)
 		if thing is not None:
+			# use all functions for taking
 			thing.put_to_inventory(self.player)
 			thing.put_to_weapons(self.player, thing)
 			thing.put_to_armours(self.player, thing)
@@ -124,6 +132,7 @@ class ENGINE(object):
 		damage += self.player.curent_loc[0][4].kill(self.player.x, self.player.y)
 		#player take damage
 		
+		# player always take one damage
 		if damage - self.player.armour.arm <= 0 and damage != 0:
 			damage = 1
 		elif damage - self.player.armour.arm > 0 and damage != 0:
@@ -135,7 +144,7 @@ class ENGINE(object):
 		sr = self.player.die()
 		
 		if sr == 0:
-			#if self.player died, announce the text
+			#if player died, announce the text
 			gog.blit(game_over, (230, 240))
 		
 		self.repaint()
@@ -147,6 +156,7 @@ class ENGINE(object):
 		self.player.curent_loc[0][2].move()
 		self.player.curent_loc[0][3].move()
 		self.player.curent_loc[0][4].move()
+		# kill enemy if the player use some weapons for this
 		if self.spear_activated == 1 or self.throwed == 1:
 			self.kiling_enemy()
 	
@@ -159,10 +169,12 @@ class ENGINE(object):
 		damadge = 0
 		
 		if self.spear_activated == 1:
+			# killing by spear
 			damadge = self.player.curent_loc[0][9].attack(self.player.curent_loc[0][2].x, self.player.curent_loc[0][2].y)
 			self.player.curent_loc[0][2].hp -= damadge
 			
 			if damadge > 0 and self.player.curent_loc[0][2].hp > 0:
+				# if spear touched enemy but dosen't killed him, hide spear and annonce what enemy was hurted
 				self.spear_disactivate()
 				self.player.curent_loc[0][2].scin = pygame.image.load("docs/monster_hurted.jpg")
 			
@@ -181,10 +193,11 @@ class ENGINE(object):
 				self.player.curent_loc[0][4].scin = pygame.image.load("docs/monster_hurted.jpg")
 		
 		if self.throwed == 1:
-			
+			# the same for throwen spear
 			damadge = self.player.throw[len(self.player.throw) - 1].attack(self.player.curent_loc[0][2].x, self.player.curent_loc[0][2].y)
 			self.player.curent_loc[0][2].hp -= damadge
 			if damadge > 0 and self.player.curent_loc[0][2].hp > 0:
+				# but without hiding
 				self.player.curent_loc[0][2].scin = pygame.image.load("docs/monster_hurted.jpg")
 			
 			damadge = self.player.throw[len(self.player.throw) - 1].attack(self.player.curent_loc[0][3].x, self.player.curent_loc[0][3].y)
@@ -210,6 +223,7 @@ class ENGINE(object):
 			if self.ran == 1:
 				#hide the spear
 				threading.Timer(1, self.spear_disactivate).start()
+		# player atack by throwen spear
 		elif e[pygame.K_t] and self.player.throw:
 			self.throwed = 1
 			self.player.throw[len(self.player.throw) - 1].x = self.player.x + 5
@@ -236,19 +250,23 @@ class ENGINE(object):
 
 
 class LOCATION(object):
+	"""class that answer for logic of teleport through locations"""
 	
 	def __init__(self, locs_list, player):
 		self.player = player
 		self.locs_list = locs_list
 	
 	def go_or_teleport(self, xy, i, end):
+		# and for logic of stoping in end
 		go = self.player.curent_loc[i]
 		if type(go) != int:
+			# go is function
 			if xy == "x":
 				self.player.x = go()
 			if xy == "y":
 				self.player.y = go()
 		else:
+			# go is number
 			self.player.curent_loc = self.locs_list[go]
 			self.player.curent_loc[0][9] = self.player.weapon
 			return end
@@ -274,6 +292,7 @@ class LOCATION(object):
 
 
 class Game(object):
+	"""class that answer for logic of game going"""
 	
 	def game(self, player_hp):
 		#list of beings
@@ -320,8 +339,10 @@ class Game(object):
 		stop7= Stop(45, 410, pygame.image.load("docs/lake.png"))
 		stop8 = Stop(215, 80, pygame.image.load("docs/lake.png"))
 		if player_hp > 1:
+			# armour if the complex easier then HARD
 			chest2 = Chest(310, 185, armour, pygame.image.load("docs/chest.jpg"))
 		else:
+			# and throwen spear if complex is HARD
 			chest2 = Chest(310, 185, throw, pygame.image.load("docs/chest.jpg"))
 		#-----------------------------------------------
 		#hell locations
@@ -425,12 +446,14 @@ class Game(object):
 			clock.tick(20)
 			log.start()
 			
+			# logic of throwing throwen spear
 			if log.throwed == 1:
 				status = player.throw[len(player.throw) - 1].fly(player.x + 5, player.y - 8)
 				log.throwed = status
 				if not log.throwed:
 					player.throw.pop()
 			
+			# possibility exit
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT:
 					exit(0)
@@ -440,6 +463,7 @@ class Game(object):
 			log.repaint()
 		
 		if player.hp <= 0:
+			# anounce "GAME OVER" and exit to menu
 			i = 0
 			while i < 2:
 				pygame.time.delay(1000)
@@ -450,11 +474,13 @@ class Game(object):
 
 
 def repaint_menu(start, education):
+	"""use when need to repaint menu"""
 	global menu, gog, game_obj, started, edu
 	
 	gog.blit(menu['fon'], (0, 0))
 	
 	if start:
+		# possibility to chose complex
 		gog.blit(menu['easy'].scin, (menu['easy'].x, menu['easy'].y))
 		gog.blit(menu['normal'].scin, (menu['normal'].x, menu['normal'].y))
 		gog.blit(menu['complex'].scin, (menu['complex'].x, menu['complex'].y))
@@ -475,6 +501,7 @@ def repaint_menu(start, education):
 					started = False
 					game_obj.game(1)
 	elif education:
+		# see education
 		gog.blit(pygame.image.load('docs/education.PNG'), (0, 0))
 		gog.blit(menu['back'].scin, (menu['back'].x, menu['back'].y))
 		
@@ -484,6 +511,7 @@ def repaint_menu(start, education):
 					edu = False
 					return False
 	else:
+		# main menu
 		gog.blit(menu['start'].scin, (menu['start'].x, menu['start'].y))
 		gog.blit(menu['edu'].scin, (menu['edu'].x, menu['edu'].y))
 		gog.blit(menu['exit'].scin, (menu['exit'].x, menu['exit'].y))
@@ -502,6 +530,7 @@ while True:
 	
 	for event in pygame.event.get():
 		if event.type == pygame.MOUSEBUTTONDOWN:
+			# doing choose
 			if menu['start'].pressed(event.pos[0], event.pos[1]):
 				started = True
 			elif menu['exit'].pressed(event.pos[0], event.pos[1]):
